@@ -192,7 +192,7 @@ int main(int argc, const char *argv[]) {
                         P_rect_00, R_rect_00, RT);
 
     // Visualize 3D objects
-    bVis = true;
+    bVis = false;
     if (bVis) {
       show3DObjects((dataBuffer.end() - 1)->boundingBoxes, cv::Size(4.0, 20.0),
                     cv::Size(2000, 2000), true);
@@ -266,7 +266,7 @@ int main(int argc, const char *argv[]) {
       vector<cv::DMatch> matches;
       string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
       string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-      string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+      string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
       matchDescriptors((dataBuffer.end() - 2)->keypoints,
                        (dataBuffer.end() - 1)->keypoints,

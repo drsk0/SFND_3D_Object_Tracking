@@ -264,7 +264,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
   // auxiliary variables
   double dT = 1.0 / frameRate; // time between two measurements in seconds
   double laneWidth = 4.0;      // assumed width of the ego lane
-  double stdFactor = 2.0;
+  double stdFactor = 1.0;
 
   vector<double> xs;
   std::transform(lidarPointsPrev.begin(), lidarPointsPrev.end(),
