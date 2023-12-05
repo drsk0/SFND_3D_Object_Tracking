@@ -264,6 +264,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
   // auxiliary variables
   double dT = 1.0 / frameRate; // time between two measurements in seconds
   double laneWidth = 4.0;      // assumed width of the ego lane
+  double stdFactor = 2.0;
 
   vector<double> xs;
   std::transform(lidarPointsPrev.begin(), lidarPointsPrev.end(),
@@ -274,7 +275,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
   // find closest distance to Lidar points within ego lane
   double minXPrev = 1e9, minXCurr = 1e9;
   for (auto it = lidarPointsPrev.begin(); it != lidarPointsPrev.end(); ++it) {
-    if (abs(it->y) <= laneWidth / 2.0 && abs(it->x - xMedian) < 2.0 * xStd) {
+    if (abs(it->y) <= laneWidth / 2.0 && abs(it->x - xMedian) < stdFactor * xStd) {
       // 3D point within ego lane and not outlier?
       minXPrev = minXPrev > it->x ? it->x : minXPrev;
     }
@@ -287,7 +288,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
   xMedian = meanAndStdXCurr.first;
   xStd = meanAndStdXCurr.second;
   for (auto it = lidarPointsCurr.begin(); it != lidarPointsCurr.end(); ++it) {
-    if (abs(it->y) <= laneWidth / 2.0 && abs(it->x - xMedian) < 2.0 * xStd) {
+    if (abs(it->y) <= laneWidth / 2.0 && abs(it->x - xMedian) < stdFactor * xStd) {
       // 3D point within ego lane and not outlier?
       minXCurr = minXCurr > it->x ? it->x : minXCurr;
     }
