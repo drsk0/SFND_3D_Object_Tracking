@@ -46,12 +46,11 @@ TTC Lidar : 8.309779 s, TTC Camera : 11.081470 s
 
 The two lines marked with `>` show a significant difference of the TTC computed
 purely with lidar to the TTC computed with the camera. Looking at the topview of
-the lidar points of the preceding vehicle indicates that the computed TTC of the
-lidar is most likely off for the following reasons:
+the lidar points of the preceding vehicle we can make the following observations:
   
+  > The TTC expected from manually looking at the topview is a lot smaller.
   > The distance to the preceding vehicle strictly decreases.
-  > The relative speed of the two vehicles doesn't seem to abruptly jump by more than a factor of two. 
-  > There seem to be outliers visible at the very bottom of the bounding boxes that could be responsible for this result.
+  > there seem to be outliers visible at the very bottom of the bounding boxes.
 
 By allowing only points within a smaller distance to the median (1 * standard
 deviation), the results improve significantly:
@@ -59,9 +58,9 @@ deviation), the results improve significantly:
 ```
 TTC Lidar : 13.945691 s, TTC Camera : 11.750239 s
 TTC Lidar : 13.945691 s, TTC Camera : 11.694809 s
-TTC Lidar : 16.463854 s, TTC Camera : 13.443180 s
+> TTC Lidar : 16.463854 s, TTC Camera : 13.443180 s
 TTC Lidar : 12.459043 s, TTC Camera : 13.265749 s
-TTC Lidar : 13.233407 s, TTC Camera : 12.598070 s
+> TTC Lidar : 13.233407 s, TTC Camera : 12.598070 s
 TTC Lidar : 13.282201 s, TTC Camera : 12.584364 s
 TTC Lidar : 11.343067 s, TTC Camera : 11.743797 s
 TTC Lidar : 9.863465 s, TTC Camera : 11.360505 s
@@ -71,11 +70,18 @@ TTC Lidar : 9.587677 s, TTC Camera : 10.713727 s
 TTC Lidar : 9.620830 s, TTC Camera : 10.484987 s
 TTC Lidar : 7.683126 s, TTC Camera : 11.081470 s
 ```
-
 The reason for the outliers in the point cloud could be manifold. The source
 of the faulty lidar point could for example be dust/insect in the air or even
 a waterdrop. It's noteworthy that setting a more agressiv filter gives better
 results.
+
+However, the lines marked with `>` are still quiet far off of the TTC expected
+from looking manually at the topview of the lidar point cloud. The explanation
+for this is the fact that both vehicles are decelerating during these frames
+(stop lights and the vehicles brake lights can be seen in the scene). Our TTC
+computation however relies on a linear model and only takes into account the
+relative speed of the vehicles. The nonlinear model taking into account the
+different accelerations of the vehicles would lead to better results.
 
 # FP.6 Performance Evaluation 2
 

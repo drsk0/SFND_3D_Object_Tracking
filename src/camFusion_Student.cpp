@@ -264,7 +264,7 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
   // auxiliary variables
   double dT = 1.0 / frameRate; // time between two measurements in seconds
   double laneWidth = 4.0;      // assumed width of the ego lane
-  double stdFactor = 1.0;
+  double stdFactor = 2.0;
 
   vector<double> xs;
   std::transform(lidarPointsPrev.begin(), lidarPointsPrev.end(),
@@ -303,35 +303,68 @@ void matchBoundingBoxes(vector<cv::DMatch> &matches,
                         DataFrame &currFrame) {
   auto currBbs = currFrame.boundingBoxes;
   auto prevBbs = prevFrame.boundingBoxes;
-  vector<int> ixs = {};
-  for (auto it1 = currBbs.begin(); it1 != currBbs.end(); it1++) {
-    // Collect indices of keypoints in previous frame that match something in
-    // this box
-    ixs.clear();
-    for (auto m : matches) {
-      if (it1->roi.contains(currFrame.keypoints[m.trainIdx].pt)) {
-        ixs.push_back(m.queryIdx);
-      }
-    }
-    // The matching bounding box in the previous frame is the one, that
-    // contains the most matches with this one. Thus, for each bounding box
-    // in the previous frame, count how many of the matched keypoints are
-    // within its roi. Take the bouding box with the maximum.
-    int bestID;
-    int maxMatches = -1;
-    int count = 0;
-    for (auto it2 = prevBbs.begin(); it2 != prevBbs.end(); it2++) {
-      count = 0;
-      for (auto i : ixs) {
-        if (it2->roi.contains(prevFrame.keypoints[i].pt)) {
-          count++;
+
+  std::map<int, std::multiset<int>> mm;
+  for (auto m: matches){
+    auto p1 = currFrame.keypoints[m.trainIdx].pt;
+    auto p2 = prevFrame.keypoints[m.queryIdx].pt;
+
+    // find bounding box(es) of p1.
+    std::vector<int> boxIds1;
+    std::multiset<int> mset;
+    for (auto it1 = currBbs.begin(); it1 != currBbs.end(); it1++) {
+      mset.clear();
+      if (it1->roi.contains(p1)) {
+        if (mm.find(it1->boxID) != mm.end()){
+          mset =  mm[it1->boxID];
         }
-      }
-      if (count > maxMatches) {
-        maxMatches = count;
-        bestID = it2->boxID;
+        for (auto it2 = prevBbs.begin(); it2 != prevBbs.end(); it2++){
+          if (it2->roi.contains(p2)) {
+            mset.insert(it2->boxID);
+          }
+        }
+        mm[it1->boxID] = mset;
       }
     }
-    bbBestMatches[it1->boxID] = bestID;
   }
+
+  for (auto es : mm) {
+    auto boxes = es.second; 
+    auto maxBox = max_element(boxes.begin(), boxes.end(), [&](int boxId1, int boxId2){return boxes.count(boxId1) < boxes.count(boxId2);});
+    bbBestMatches[es.first] = *maxBox;
+  }
+
+
+  
+  // vector<int> ixs = {};
+  // for (auto it1 = currBbs.begin(); it1 != currBbs.end(); it1++) {
+  //   // Collect indices of keypoints in previous frame that match something in
+  //   // this box
+  //   ixs.clear();
+  //   for (auto m : matches) {
+  //     if (it1->roi.contains(currFrame.keypoints[m.trainIdx].pt)) {
+  //       ixs.push_back(m.queryIdx);
+  //     }
+  //   }
+  //   // The matching bounding box in the previous frame is the one, that
+  //   // contains the most matches with this one. Thus, for each bounding box
+  //   // in the previous frame, count how many of the matched keypoints are
+  //   // within its roi. Take the bouding box with the maximum.
+  //   int bestID;
+  //   int maxMatches = -1;
+  //   int count = 0;
+  //   for (auto it2 = prevBbs.begin(); it2 != prevBbs.end(); it2++) {
+  //     count = 0;
+  //     for (auto i : ixs) {
+  //       if (it2->roi.contains(prevFrame.keypoints[i].pt)) {
+  //         count++;
+  //       }
+  //     }
+  //     if (count > maxMatches) {
+  //       maxMatches = count;
+  //       bestID = it2->boxID;
+  //     }
+  //   }
+  //   bbBestMatches[it1->boxID] = bestID;
+  // }
 }
